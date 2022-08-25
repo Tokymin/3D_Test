@@ -21,9 +21,9 @@ def show(label, info):
 def load_data():
     position_deltas = []
     # for name in os.walk():
-    depths = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings002/depth/")).files('*.exr'))
-    imgs = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings002/photo/")).files('*.png'))
-    with open(r"F:/Toky/Dataset/UnityCam/Recordings002/position_rotation.csv", encoding='utf-8') as file:
+    depths = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/depth/")).files('*.exr'))
+    imgs = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/photo/")).files('*.png'))
+    with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation.csv", encoding='utf-8') as file:
         content = file.readlines()
     for line in content:
         position_deltas.append(line[0:].split(" "))
@@ -57,10 +57,10 @@ if __name__ == '__main__':
         depth_li.append(depth_read(depths[i]))
         imgs_li.append(img_read(imgs[i]))
     depth_scale = 1000  # 暂定为100，因为深度值有40这种数字，在肠道内部，近距离看最近应该也是1-2cm左右
-    cx = 319.5  # 396
-    cy = 255.5  # 317
-    fx = 389.93593
-    fy = 309.77969
+    cx = 160  # 396
+    cy = 160  # 317
+    fx = 157.549850
+    fy = 156.3536121
     point_3D_list = []
     XYZ1c = []
     colors = []
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     depth_0, img_0, T_0 = depth_li[0], imgs_li[0], T_li[0]
     point_3D_list_1 = []
     # 将内参写成一个矩阵
-    instincts = np.asarray([389.93593, 0, 319.5, 0, 309.77969, 255.5, 0, 0, 1]).reshape(3, 3)
+    instincts = np.asarray([157.549850, 0, 160, 0, 156.3536121, 160, 0, 0, 1]).reshape(3, 3)  # 将内参写成一个矩阵
     depth_1, img_1, T_1 = depth_li[1], imgs_li[1], T_li[1]  # 需要提前知道下一个变换的位姿
     depth_2, img_2, T_2 = depth_li[2], imgs_li[2], T_li[2]
     point_3D_list_2 = []
