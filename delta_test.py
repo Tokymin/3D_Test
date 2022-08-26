@@ -84,7 +84,6 @@ if __name__ == '__main__':
         depth_error_list = []
         for u in range(0, depth_0.shape[0], 2):
             for v in range(0, depth_0.shape[1], 2):
-                # a = depth_0[u, v]
                 d = np.max(depth_0[u, v])
                 if d == 0:
                     continue  # 为0表示没有测量到
@@ -100,31 +99,27 @@ if __name__ == '__main__':
 
                 # 反向投影
                 point_camera = np.linalg.inv(T_1) @ point_3D  # 反投影时使用
-                # point_camera = T_1@ point_3D
                 point_camera = point_camera[0:3]
                 pixel_coord = (1 / point_camera[2]) * instincts @ point_camera
 
                 u_k = int(np.round(pixel_coord[0]))
                 v_k = int(np.round(pixel_coord[1]))
-                if v_k != v or u_k != u:
-                    print("v_k!=v")
+                # if v_k != v or u_k != u:
+                #     print("v_k!=v")
                 if u_k >= depth_0.shape[0] or u_k < 0 or v_k >= depth_0.shape[1] or v_k < 0:
                     continue
                 if float(img_1[u_k, v_k]) <= 5 or float(img_0[u, v]) <= 5:
                     continue
                 # if float(depth_1[u_k, v_k]) <= 20 or float(depth_0[u, v]) <= 20:
                 #     continue
-                # 这个投影下来的坐标和谁进行比较呢？而且应该要保证投影的坐标也是在像素平面内部的，不然就视作没有成功投影的像素点
-                # 现在有两个像素坐标，就可以计算灰度值的差了
-                # 还是说需要记录下这些新的uk vk 的值，作为成功投影的像素点，再取一个有效性mask ，去计算经过mask 屏蔽过后的两张图像之间的整体相似性作为loss呢
-                print(point_camera[2] - np.max(depth_1[u, v]))
                 num_projected_point += 1
                 depth_error_list.append(np.abs(point_camera[2] - np.max(depth_1[u_k, v_k])))
                 depth_error = depth_error + np.abs(point_camera[2] - np.max(depth_1[u_k, v_k]))
                 img_error = img_error + np.abs(int(img_0[u, v]) - int(img_1[u_k, v_k]))
 
-        show_2D(np.array(depth_error_list).reshape(len(depth_error_list), 1), "depth_error")
-        print(T_0, T_1)
-        print(f'深度值的范围:{np.min(depth_1)}到：{np.max(depth_1)}')
-        print(f'成功投影的点数：{num_projected_point}，深度误差：{depth_error}，图像灰度值误差：{img_error}，'
-              f'总的像素点数: {depth_0.shape[0] * depth_0.shape[1]}')
+        # show_2D(np.array(depth_error_list).reshape(len(depth_error_list), 1), "depth_error")
+        # print(T_0, T_1)
+        print(f'深度值的范围:{np.min(depth_1)}到：{np.max(depth_1)}，平均值是：{np.mean(depth_1)}')
+        print(
+            f'成功投影的点数：{num_projected_point}，深度误差：{depth_error}，深度误差均值：{depth_error/num_projected_point},图像灰度值误差：{img_error}，'
+            f'总的像素点数: {depth_0.shape[0] * depth_0.shape[1]}')
