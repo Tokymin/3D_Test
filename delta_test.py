@@ -24,7 +24,7 @@ def load_data():
     depths = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/depth/")).files('*.exr'))
     imgs = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/photo/")).files('*.png'))
     # with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation.csv", encoding='utf-8') as file:
-    with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation_delta.csv",  # _processed
+    with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation.csv",  # _processed
               encoding='utf-8') as file:
         content = file.readlines()
     for line in content:
