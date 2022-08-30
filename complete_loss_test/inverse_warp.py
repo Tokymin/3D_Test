@@ -84,6 +84,9 @@ def pose_vec2mat(vec, rotation_mode='euler'):
     return transform_mat
 
 
+import numpy as np
+
+
 def inverse_warp(img, depth, ref_depth, pose, intrinsics, padding_mode='zeros'):
     """
     Inverse warp a source image to the target image plane.
@@ -104,13 +107,15 @@ def inverse_warp(img, depth, ref_depth, pose, intrinsics, padding_mode='zeros'):
     P = torch.matmul(intrinsics, T)[:, :3, :]
 
     world_points = depth_to_3d(depth, intrinsics)  # B 3 H W
-    world_points = torch.cat([world_points, torch.ones(B, 1, H, W).type_as(img)], 1)
-    cam_points = torch.matmul(P, world_points.view(B, 4, -1))
+    world_points = torch.cat([world_points, torch.ones(B, 1, H, W).type_as(img)], 1)  # B 4  H W
+    cam_points = torch.matmul(P, world_points.view(B, 4, -1))  # 1 3 H*W
 
-    pix_coords = cam_points[:, :2, :] / (cam_points[:, 2, :].unsqueeze(1) + 1e-7)
+    pix_coords = cam_points[:, :2, :] / (
+            cam_points[:, 2, :].unsqueeze(1) + 1e-7)  # B 2 H*W cam_points 只取前两个，像素坐标，并除以 zx
     pix_coords = pix_coords.view(B, 2, H, W)
-    pix_coords = pix_coords.permute(0, 2, 3, 1)
-    pix_coords[..., 0] /= W - 1
+    pix_coords = pix_coords.permute(0, 2, 3, 1)  # B H*W 2
+    print(np.asarray(pix_coords))
+    pix_coords[..., 0] /= W - 1  # 构建一个采样的grid网格，范围归一化到[-1,1]
     pix_coords[..., 1] /= H - 1
     pix_coords = (pix_coords - 0.5) * 2
 

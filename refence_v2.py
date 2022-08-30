@@ -21,9 +21,12 @@ def show(label, info):
 def load_data():
     position_deltas = []
     # for name in os.walk():
-    depths = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/depth/")).files('*.exr'))
-    imgs = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/photo/")).files('*.png'))
-    with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation.csv", encoding='utf-8') as file:
+    # depths = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/depth/")).files('*.exr'))
+    # imgs = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/photo/")).files('*.png'))
+    # with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation.csv", encoding='utf-8') as file:
+    depths = sorted(Path((r"C:\Users\DELL\Desktop\slambook2-master\ch5\rgbd\depth\\")).files('*.pgm'))
+    imgs = sorted(Path((r"C:\Users\DELL\Desktop\slambook2-master\ch5/rgbd\color/")).files('*.png'))
+    with open(r"C:\Users\DELL\Desktop\slambook2-master\ch5\rgbd\pose.txt", encoding='utf-8') as file:
         content = file.readlines()
     for line in content:
         position_deltas.append(line[0:].split(" "))
@@ -32,7 +35,7 @@ def load_data():
 
 def depth_read(depth_img_file_name):
     depth_img = cv2.imread(depth_img_file_name, -1)  # , dtype=cv2.CV_32F
-    return depth_img * 100
+    return depth_img # * 100
 
 
 def img_read(img_file_name):
@@ -46,7 +49,7 @@ if __name__ == '__main__':
     depth_li = []
     T_li = []
     imgs_li = []
-    for i in range(13, 16):
+    for i in range(len(imgs)):
         Rm = R.from_quat([position_deltas[i][3], position_deltas[i][4], position_deltas[i][5], position_deltas[i][6]])
         rotation_matrix = Rm.as_matrix()
         rvec = rotation_matrix  # 3*3,针对四元数的
@@ -57,10 +60,16 @@ if __name__ == '__main__':
         depth_li.append(depth_read(depths[i]))
         imgs_li.append(img_read(imgs[i]))
     depth_scale = 1000  # 暂定为100，因为深度值有40这种数字，在肠道内部，近距离看最近应该也是1-2cm左右
-    cx = 160  # 396
-    cy = 160  # 317
-    fx = 157.549850
-    fy = 156.3536121
+    # cx = 160  # 396
+    # cy = 160  # 317
+    # fx = 157.549850
+    # fy = 156.3536121
+    cx = 325.5
+    cy = 253.5
+    fx = 518.0
+    fy = 519.0
+    instincts = np.asarray([518.0, 0, 325.5, 0, 519.0, 253.5, 0, 0, 1]).reshape(3, 3)
+
     point_3D_list = []
     XYZ1c = []
     colors = []
@@ -68,7 +77,7 @@ if __name__ == '__main__':
     depth_0, img_0, T_0 = depth_li[0], imgs_li[0], T_li[0]
     point_3D_list_1 = []
     # 将内参写成一个矩阵
-    instincts = np.asarray([157.549850, 0, 160, 0, 156.3536121, 160, 0, 0, 1]).reshape(3, 3)  # 将内参写成一个矩阵
+    # instincts = np.asarray([157.549850, 0, 160, 0, 156.3536121, 160, 0, 0, 1]).reshape(3, 3)  # 将内参写成一个矩阵
     depth_1, img_1, T_1 = depth_li[1], imgs_li[1], T_li[1]  # 需要提前知道下一个变换的位姿
     depth_2, img_2, T_2 = depth_li[2], imgs_li[2], T_li[2]
     point_3D_list_2 = []
@@ -79,7 +88,7 @@ if __name__ == '__main__':
     for u in range(0, depth_0.shape[0], 2):
         for v in range(0, depth_0.shape[1], 2):
             # a = depth_0[u, v]
-            d = np.max(depth_0[u, v])
+            d = np.max(depth_0[u, v])/depth_scale
             if d == 0:
                 continue  # 为0表示没有测量到
             point = []
@@ -111,10 +120,10 @@ if __name__ == '__main__':
             # 这个投影下来的坐标和谁进行比较呢？而且应该要保证投影的坐标也是在像素平面内部的，不然就视作没有成功投影的像素点
             # 现在有两个像素坐标，就可以计算灰度值的差了
             # 还是说需要记录下这些新的uk vk 的值，作为成功投影的像素点，再取一个有效性mask ，去计算经过mask 屏蔽过后的两张图像之间的整体相似性作为loss呢
-            print(point_camera[2] - np.max(depth_1[u, v]))
+            print(point_camera[2] - np.max(depth_1[u_k, v_k])/depth_scale)
             num_projected_point += 1
-            depth_error_list.append(np.abs(point_camera[2] - np.max(depth_1[u_k, v_k])))
-            depth_error = depth_error + np.abs(point_camera[2] - np.max(depth_1[u_k, v_k]))
+            depth_error_list.append(np.abs(point_camera[2] - np.max(depth_1[u_k, v_k])/depth_scale))
+            depth_error = depth_error + np.abs(point_camera[2] - np.max(depth_1[u_k, v_k])/depth_scale)
             img_error = img_error + np.abs(int(img_0[u, v]) - int(img_1[u_k, v_k]))
 
     show_2D(np.array(depth_error_list).reshape(len(depth_error_list), 1), "depth_error")

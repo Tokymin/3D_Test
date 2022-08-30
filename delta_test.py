@@ -1,12 +1,8 @@
-import csv
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import os
 from path import Path
 from scipy.spatial.transform import Rotation as R
-
-from refence_v2_lyc import show_2D
 
 
 def show(label, info):
@@ -21,10 +17,10 @@ def show(label, info):
 def load_data():
     position_deltas = []
     # for name in os.walk():
-    depths = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/depth/")).files('*.exr'))
-    imgs = sorted(Path((r"F:/Toky/Dataset/UnityCam/Recordings003/photo/")).files('*.png'))
-    # with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation.csv", encoding='utf-8') as file:
-    with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation.csv",  # _processed
+    depths = sorted(Path(("E:/Toky/dataSet/cd2rtzm23r-1/UnityCam/Colon/Pixelwise Depths/")).files('*.png'))
+    imgs = sorted(Path(("E:/Toky/dataSet/cd2rtzm23r-1/UnityCam/Colon/Frames/")).files('*.png'))
+    # with open(r"E:/Toky/dataSet/cd2rtzm23r-1/UnityCam/Colon/Poses/colon_position_rotation.csv",
+    with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation.csv",
               encoding='utf-8') as file:
         content = file.readlines()
     for line in content:
@@ -56,7 +52,7 @@ if __name__ == '__main__':
     depth_li = []
     T_li = []
     imgs_li = []
-    for i in range(len(imgs)):
+    for i in range(len(position_deltas)-1):
         Rm = R.from_quat([position_deltas[i][3], position_deltas[i][4], position_deltas[i][5], position_deltas[i][6]])
         rotation_matrix = Rm.as_matrix()
         rvec = rotation_matrix  # 3*3,针对四元数的

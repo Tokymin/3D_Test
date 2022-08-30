@@ -8,14 +8,20 @@ import os
 from path import Path
 from scipy.spatial.transform import Rotation as R
 from refence_v2_lyc import show_2D
-from complete_loss_test.loss_functions import compute_errors, photo_and_geometry_loss, compute_smooth_loss
+from complete_loss_test.loss_functions import photo_and_geometry_loss, compute_smooth_loss
 
-cx = 160  # 396
-cy = 160  # 317
-fx = 157.549850
-fy = 156.3536121
-depth_scale = 1000  # 暂定为100，因为深度值有40这种数字，在肠道内部，近距离看最近应该也是1-2cm左右
-instincts = np.asarray([157.549850, 0, 160, 0, 156.3536121, 160, 0, 0, 1]).reshape(3, 3)  # 将内参写成一个矩阵
+# cx = 160  # 396
+# cy = 160  # 317
+# fx = 157.549850
+# fy = 156.3536121
+# depth_scale = 100  # 暂定为100，因为深度值有40这种数字，在肠道内部，近距离看最近应该也是1-2cm左右
+# instincts = np.asarray([157.549850, 0, 160, 0, 156.3536121, 160, 0, 0, 1]).reshape(3, 3)  # 将内参写成一个矩阵
+
+cx = 325.5
+cy = 253.5
+fx = 518.0
+fy = 519.0
+instincts = np.asarray([518.0, 0, 325.5, 0, 519.0, 253.5, 0, 0, 1]).reshape(3, 3)
 
 
 def show(label, info):
@@ -30,9 +36,14 @@ def show(label, info):
 def load_data():
     position_deltas = []
     # for name in os.walk():
-    depths = sorted(Path(("F:/Toky/Dataset/UnityCam/Recordings003/depth/")).files('*.exr'))
-    imgs = sorted(Path(("F:/Toky/Dataset/UnityCam/Recordings003/photo/")).files('*.png'))
-    with open(r"F:/Toky/Dataset/UnityCam/Recordings003/position_rotation.csv", encoding='utf-8') as file:
+    depths = sorted(Path((r"C:\Users\DELL\Desktop\slambook2-master\ch5\rgbd\depth\\")).files('*.pgm'))
+    imgs = sorted(Path((r"C:\Users\DELL\Desktop\slambook2-master\ch5/rgbd\color/")).files('*.png'))
+    with open(r"C:\Users\DELL\Desktop\slambook2-master\ch5\rgbd/pose.txt",
+
+              # depths = sorted(Path(("E:/Toky/dataSet/cd2rtzm23r-1/UnityCam/Colon/Pixelwise Depths/")).files('*.png'))
+              # imgs = sorted(Path(("E:/Toky/dataSet/cd2rtzm23r-1/UnityCam/Colon/Frames/")).files('*.png'))
+              # with open(r"E:/Toky/dataSet/cd2rtzm23r-1/UnityCam/Colon/Poses/colon_position_rotation.csv",
+              encoding='utf-8') as file:  # _delta_processed
         content = file.readlines()
     for line in content:
         position_deltas.append(line[0:].split(" "))
@@ -42,8 +53,10 @@ def load_data():
 def depth_read(depth_img_file_name):
     depth_img = cv2.imread(depth_img_file_name, -1)  # , dtype=cv2.CV_32F
     # depth_img = np.transpose(depth_img, (2, 0, 1))
-    q = np.asarray(depth_img, dtype=np.float64)[:, :, 2]
-    return q * depth_scale
+    q = np.asarray(depth_img, dtype=np.float64)
+    # result = np.zeros_like(q)
+    # result=cv2.normalize(q, result, 0, 1, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    return q
 
 
 def img_read(img_file_name):
@@ -59,7 +72,7 @@ if __name__ == '__main__':
     imgs_li = []
     loss_2_li = []
 
-    for i in range(len(position_deltas)):
+    for i in range(len(imgs)):
         Rm = R.from_quat([position_deltas[i][3], position_deltas[i][4], position_deltas[i][5], position_deltas[i][6]])
         rotation_matrix = Rm.as_matrix()
         rvec = rotation_matrix  # 3*3,针对四元数的
